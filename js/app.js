@@ -1,22 +1,36 @@
-// ====================== 工具模块 ======================
-// 在Utils对象顶部添加队列变量
+/**
+ * 工具模块，提供通用的工具函数和组件。
+ */
 const Utils = {
-  toastQueue: [],
-  isShowingToast: false,
-  
-  // HTML转义防止XSS
+  toastQueue: [],          // Toast通知队列
+  isShowingToast: false,   // 当前是否有Toast正在显示
+
+  /**
+   * HTML转义，防止XSS攻击（使用textContent自动转义）
+   * @param {string} str - 原始字符串
+   * @returns {string} 安全转义后的HTML字符串
+   * @example
+   * escapeHtml('<script>alert(1)</script>') // 返回 "&lt;script&gt;alert(1)&lt;/script&gt;"
+   */
   escapeHtml: (str) => {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
   },
 
-  // Toast通知组件  
+  /**
+   * 显示Toast通知（支持队列和动画）
+   * @param {string} message - 显示内容（自动截断至100字符）
+   * @param {string} [type='info'] - 通知类型，可选值：info/success/error/warning
+   */
   showToast: function (message, type = 'info') {
     this.toastQueue.push({ message, type });
 	if (!this.isShowingToast) this.processToastQueue();
   },
-  
+
+  /**
+   * 处理Toast队列（私有方法）
+   */
   processToastQueue: function () {
 	if (this.toastQueue.length === 0) {
 	  this.isShowingToast = false;
@@ -43,7 +57,16 @@ const Utils = {
     }, 3000);
   },
 
-  // 安全fetch封装
+  /**
+   * 安全Fetch封装（含超时和状态码处理）
+   * @param {string} url - 请求地址
+   * @param {Object} [options={}] - Fetch配置项
+   * @param {number} [timeout=10000] - 超时时间（毫秒）
+   * @returns {Promise<Object>} 解析后的JSON数据
+   * @throws {Error} 包含状态码的自定义错误对象
+   * @example
+   * await safeFetch('/api', { method: 'GET' }, 5000)
+   */
   safeFetch: async (url, options = {}, timeout = 10000) => {
 	const controller = new AbortController();
 	const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -82,8 +105,13 @@ const Utils = {
   }
 };
 
-// ====================== 主题管理模块 ======================
+/**
+ * 主题管理模块（支持10种预设主题）
+ */
 const ThemeManager = {
+  /**
+   * 初始化主题系统（自动加载本地存储的主题）
+   */
   init() {
     this.applySavedTheme();
     document.querySelector('.theme-switcher').addEventListener('change', (e) => {
@@ -92,6 +120,9 @@ const ThemeManager = {
 	this.initThemePreview();
   },
   
+  /**
+   * 初始化主题预览面板（事件委托优化）
+   */
   initThemePreview() {
     document.querySelectorAll('.theme-preview-item').forEach(item => {
       item.addEventListener('click', () => {
@@ -100,6 +131,9 @@ const ThemeManager = {
     });
   },
 
+  /**
+   * 可用主题列表（与CSS变量定义严格对应）
+   */
   availableThemes: [
     'light',
     'dark',
@@ -113,6 +147,11 @@ const ThemeManager = {
     'cyberpunk',
   ],
 
+  /**
+   * 切换主题（自动更新DOM和本地存储）
+   * @param {string} theme - 主题标识符
+   * @throws 无效主题会触发Toast警告
+   */
   changeTheme(theme) {
 	if (this.availableThemes.includes(theme)) {
       document.documentElement.setAttribute('data-theme', theme);
@@ -122,6 +161,9 @@ const ThemeManager = {
 	}
   },
 	
+  /**
+   * 应用已保存主题（fallback到默认light主题）
+   */
   applySavedTheme() {
     const savedTheme = localStorage.getItem('musicTheme') || 'light';
     this.changeTheme(savedTheme);
@@ -129,21 +171,32 @@ const ThemeManager = {
   }
 };
 
-// ====================== 缓存管理模块 ======================
+/**
+ * 缓存管理模块（LRU算法 + 过期清理）
+ */
 const CacheManager = {
-  // 缓存配置
+  /**
+   * 缓存配置（最大15条，过期2小时）
+   */
   config: {
     maxItems: 15,          // 最大缓存数量
-    expireHours: 2,        // 缓存小时数
-    storageKey: 'musicCache'
+    expireHours: 2,        // 缓存过期时间（小时）
+    storageKey: 'musicCache' // 本地存储的键名
   },
 
-  // 生成缓存键
+  /**
+   * 生成标准缓存键（小写URL编码 + search_前缀）
+   * @param {string} query - 原始搜索词
+   * @returns {string} 例如 "search_%e6%ad%8c"
+   */
   generateKey(query) {
     return `search_${encodeURIComponent(query).toLowerCase()}`;
   },
 
-  // 获取缓存
+  /**
+   * 获取缓存（自动更新LRU时间戳）
+   * @returns {Object|null} 有效数据或null
+   */
   get(query) {
     const cache = JSON.parse(localStorage.getItem(this.config.storageKey)) || {};
     const key = this.generateKey(query);
@@ -156,7 +209,11 @@ const CacheManager = {
     return null;
   },
 
-  // 设置缓存
+  /**
+   * 设置缓存（自动执行清理策略）
+   * @param {string} query - 搜索关键词
+   * @param {Object} data - 需缓存的结构化数据
+   */
   set(query, data) {
     let cache = JSON.parse(localStorage.getItem(this.config.storageKey)) || {};
     const key = this.generateKey(query);
@@ -179,7 +236,11 @@ const CacheManager = {
     return hoursDiff > this.config.expireHours;
   },
 
-  // 清理缓存
+  /**
+   * 清理缓存（双重策略：过期时间 + LRU）
+   * @param {Object} cache - 原始缓存对象
+   * @returns {Object} 清理后的缓存对象
+   */
   cleanCache(cache) {
     // 删除过期项
     Object.keys(cache).forEach(key => {
@@ -198,7 +259,9 @@ const CacheManager = {
     return cache;
   },
 
-  // 更新最近使用时间
+  /**
+   * 更新最近使用时间戳（用于LRU算法）
+   */
   updateLRU(cache, key) {
     if (cache[key]) {
       cache[key].lru = Date.now();
@@ -206,12 +269,16 @@ const CacheManager = {
     }
   },
 
-  // 清空缓存（可绑定到清除按钮）
+  /**
+   * 清空所有缓存。
+   */
   clear() {
     localStorage.removeItem(this.config.storageKey);
   },
   
-  // 删除单个缓存
+  /**
+   * 删除单个缓存
+   */
   deleteKey(query) {
     const cache = JSON.parse(localStorage.getItem(this.config.storageKey)) || {};
     const key = this.generateKey(query);
@@ -220,16 +287,29 @@ const CacheManager = {
   },
 };
 
-// ====================== 音乐播放器模块 ======================
+/**
+ * 音乐播放器核心模块（事件驱动架构）
+ */
 const MusicPlayer = {
-  currentAudio: null,
-  
+  currentAudio: null, // 当前播放器实例（单例控制）
+
+  /**
+   * 初始化播放器（事件绑定 + 错误监控）
+   */
   init() {
     this.bindEvents();
     this.setupGlobalErrorHandling();
   },
   
-  // 事件绑定
+  /**
+   * 绑定所有交互事件（使用事件委托优化性能）
+   * 包含：
+   * - 搜索按钮点击
+   * - 回车键搜索
+   * - 歌曲项点击（事件委托）
+   * - 移动端操作按钮
+   * - 输入框防抖（500ms）
+   */
   bindEvents() {
     // 搜索按钮
 	document.querySelector('.search-box button').addEventListener('click', () => this.searchSongs());
@@ -265,7 +345,12 @@ const MusicPlayer = {
     });
   },
 
-  // 搜索功能
+  /**
+   * 执行歌曲搜索（带缓存策略）
+   * 流程：
+   * 1. 检查缓存 → 2. 显示加载状态 → 3. API请求 → 4. 数据验证 → 5. 渲染结果
+   * @throws 自定义错误（网络错误/数据格式错误）
+   */
   async searchSongs() {
     const searchBtn = document.querySelector('.search-box button');
     const query = document.getElementById('searchInput').value.trim();
@@ -330,7 +415,12 @@ const MusicPlayer = {
     });
   },
   
-  // 增强版数据验证
+  /**
+   * 高级数据验证（防御性编程）
+   * @param {Object} data - 原始API响应
+   * @returns {Array} 有效歌曲数据
+   * @throws 当数据格式无效时中断流程
+   */
   validateData(data) {
     if (!Array.isArray(data?.data)) throw new Error('无效的歌曲数据格式');
 	
@@ -403,7 +493,14 @@ const MusicPlayer = {
     });
   },
 
-  // 渲染歌曲详情
+  /**
+   * 渲染歌曲详情（含懒加载优化）
+   * @param {Object} detail - 歌曲元数据
+   * 包含：
+   * - 封面图片（延迟加载）
+   * - 音频播放器（错误监控）
+   * - 可点击歌词（时间轴跳转）
+   */
   renderSongDetail(detail) {
     const detailContainer = document.getElementById('songDetail');
     const lyrics = this.formatLyrics(detail.lyric);
@@ -434,7 +531,11 @@ const MusicPlayer = {
     this.setupAudioHandling(detailContainer.querySelector('audio'));
   },
   
-  // 格式化歌词
+  /**
+   * 歌词时间轴格式化（正则替换）
+   * 转换示例：
+   * "[01:23.45]" → "<span data-time="83">"
+   */
   formatLyrics(lyric) {
     return lyric
       .replace(/\\n/g, '\n')
@@ -482,7 +583,12 @@ const MusicPlayer = {
     });
   },
 
-  // 全局错误处理
+  /**
+   * 全局错误监控（Window级错误捕获）
+   * 处理：
+   * - 未捕获的同步错误
+   * - 未处理的Promise拒绝
+   */
   setupGlobalErrorHandling() {
     window.addEventListener('error', (e) => {
       Utils.showToast('发生意外错误', 'error');
@@ -504,8 +610,12 @@ const MusicPlayer = {
   }
 };
 
-// ====================== 初始化应用 ======================
+/**
+ * 应用入口（DOM就绪后初始化）
+ * 初始化顺序：
+ * 1. 主题系统 → 2. 播放器核心
+ */
 document.addEventListener('DOMContentLoaded', () => {
-  ThemeManager.init();
-  MusicPlayer.init();
+  ThemeManager.init();    // 先初始化主题（避免页面闪烁）
+  MusicPlayer.init();     // 后初始化播放器（依赖DOM元素）
 });
