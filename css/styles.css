@@ -65,6 +65,98 @@
   --audio-text: #4a148c;
 }
 
+/* 科技蓝主题 */
+[data-theme="tech-blue"] {
+    --primary-color: #2196F3;
+    --bg-color: #E3F2FD;
+    --text-color: #0D47A1;
+    --secondary-bg: #BBDEFB;
+    --border-color: #90CAF9;
+    --audio-bg: #BBDEFB;
+    --audio-controls: #1565C0;
+    --audio-controls-hover: #0D47A1;
+    --audio-text: #0D47A1;
+}
+
+/* 热情红主题 */
+[data-theme="warm-red"] {
+    --primary-color: #F44336;
+    --bg-color: #FFEBEE;
+    --text-color: #B71C1C;
+    --secondary-bg: #FFCDD2;
+    --border-color: #EF9A9A;
+    --audio-bg: #FFCDD2;
+    --audio-controls: #C62828;
+    --audio-controls-hover: #B71C1C;
+    --audio-text: #8E0E00;
+}
+
+/* 自然绿主题 */
+[data-theme="nature-green"] {
+    --primary-color: #4CAF50;
+    --bg-color: #E8F5E9;
+    --text-color: #1B5E20;
+    --secondary-bg: #C8E6C9;
+    --border-color: #A5D6A7;
+    --audio-bg: #C8E6C9;
+    --audio-controls: #2E7D32;
+    --audio-controls-hover: #1B5E20;
+    --audio-text: #1B5E20;
+}
+
+/* 简约灰主题 */
+[data-theme="minimal-gray"] {
+    --primary-color: #607D8B;
+    --bg-color: #ECEFF1;
+    --text-color: #37474F;
+    --secondary-bg: #CFD8DC;
+    --border-color: #B0BEC5;
+    --audio-bg: #CFD8DC;
+    --audio-controls: #455A64;
+    --audio-controls-hover: #37474F;
+    --audio-text: #263238;
+}
+
+/* 赛博朋克主题 */
+[data-theme="cyberpunk"] {
+    --primary-color: #FF6B6B;
+    --bg-color: #2D2D2D;
+    --text-color: #00FF9D;
+    --secondary-bg: #1A1A1A;
+    --border-color: #FF6B6B;
+    --audio-bg: #1A1A1A;
+    --audio-controls: #00FF9D;
+    --audio-controls-hover: #00CC7A;
+    --audio-text: #FF6B6B;
+}
+
+/* 添加主题预览面板 */
+.theme-preview {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--secondary-bg);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.theme-preview-item {
+    width: 40px;
+    height: 40px;
+    margin: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid var(--border-color);
+    transition: transform 0.2s;
+}
+
+.theme-preview-item:hover {
+    transform: scale(1.1);
+}
+
+/* 添加平滑过渡 */
 body {
   font-family: Arial, sans-serif;
   max-width: 1200px;
@@ -72,7 +164,9 @@ body {
   padding: 20px;
   background-color: var(--bg-color);
   color: var(--text-color);
-  transition: background-color 0.3s, color 0.3s;
+  transition: 
+    background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s ease;
 }
 
 .theme-switcher {
@@ -110,7 +204,10 @@ button {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: opacity 0.3s;
+  transition:
+    background-color 0.3s ease,
+    opacity 0.3s ease,
+    transform 0.2s ease;
 }
 
 button:hover {
@@ -131,6 +228,9 @@ button:hover {
   max-height: 80vh;
   overflow-y: auto;
   border: 1px solid var(--border-color);
+  transition:
+    background-color 0.4s ease,
+    border-color 0.4s ease;
 }
 
 .song-item {
@@ -150,6 +250,9 @@ button:hover {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   border: 1px solid var(--border-color);
+  transition: 
+    background-color 0.4s ease,
+    border-color 0.4s ease;
 }
 
 .cover-img {
@@ -382,4 +485,31 @@ button, .song-item {
 .song-list, .lyrics {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+/* 缓存标识样式 */
+.cache-indicator {
+    background: var(--secondary-bg);
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--primary-color);
+}
+
+.refresh-btn {
+    background: none;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+    background: var(--primary-color);
+    color: white;
 }
