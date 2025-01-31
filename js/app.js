@@ -425,10 +425,6 @@ const MusicPlayer = {
       const item = e.target.closest('.song-item');
       if (item) this.showSongDetail(item.dataset.query, item.dataset.n);
     });
-	
-    // 移动端按钮事件
-    document.querySelector('.mobile-controls button:first-child').addEventListener('click', () => this.searchSongs());
-    document.querySelector('.mobile-controls button:last-child').addEventListener('click', () => this.scrollToTop());
 
     // 清除缓存按钮事件
     document.querySelector('.clear-cache-btn').addEventListener('click', () => {
@@ -733,13 +729,6 @@ const MusicPlayer = {
     });
   },
   
-  // 返回顶部
-  scrollToTop() {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  }
 };
 
 /**
