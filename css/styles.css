@@ -1,0 +1,385 @@
+/* 默认主题变量 */
+:root {
+  --primary-color: #007bff;
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --secondary-bg: #f8f9fa;
+  --border-color: #dee2e6;
+  --audio-bg: #f0f0f0;
+  --audio-controls: #444;
+  --audio-controls-hover: #222;
+  --audio-text: #333;
+}
+
+/* 深色主题 */
+[data-theme="dark"] {
+  --primary-color: #20c997;
+  --bg-color: #1a1a1a;
+  --text-color: #e0e0e0;
+  --secondary-bg: #2d2d2d;
+  --border-color: #404040;
+  --audio-bg: #2d2d2d;
+  --audio-controls: #e0e0e0;
+  --audio-controls-hover: #ffffff;
+  --audio-text: #e0e0e0;
+}
+
+/* 复古主题 */
+[data-theme="vintage"] {
+  --primary-color: #d4a373;
+  --bg-color: #fefae0;
+  --text-color: #606c38;
+  --secondary-bg: #faedcd;
+  --border-color: #ccd5ae;
+  --audio-bg: #faedcd;
+  --audio-controls: #606c38;
+  --audio-controls-hover: #4a5530;
+  --audio-text: #4a3820;
+}
+
+/* 护眼主题 */
+[data-theme="eye-care"] {
+  --primary-color: #8bc34a;
+  --bg-color: #e3f2fd;
+  --text-color: #37474f;
+  --card-bg: #f1f8e9;
+  --border-color: #c5e1a5;
+  --hover-bg: #dcedc8;
+  --audio-bg: #f1f8e9;
+  --audio-controls: #37474f;
+  --audio-controls-hover: #263238;
+  --audio-text: #2e4a45;
+}
+
+/* 紫色梦幻主题 */
+[data-theme="purple"] {
+  --primary-color: #9c27b0;
+  --bg-color: #f3e5f5;
+  --text-color: #4a148c;
+  --card-bg: #ede7f6;
+  --border-color: #ce93d8;
+  --hover-bg: #e1bee7;
+  --audio-bg: #ede7f6;
+  --audio-controls: #6a1b9a;
+  --audio-controls-hover: #4a148c;
+  --audio-text: #4a148c;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.theme-switcher {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 8px 12px;
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-color);
+  z-index: 1000;
+}
+
+.search-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+#searchInput {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--secondary-bg);
+  color: var(--text-color);
+}
+
+button {
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+}
+
+.song-list {
+  background: var(--secondary-bg);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+}
+
+.song-item {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.song-item:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+.song-detail {
+  background: var(--secondary-bg);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid var(--border-color);
+}
+
+.cover-img {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 2px solid var(--primary-color);
+}
+
+.lyrics {
+  white-space: pre-wrap;
+  max-height: 300px;
+  overflow-y: auto;
+  background: var(--bg-color);
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.player-link {
+  display: block;
+  margin: 15px 0;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+/* 音频控件样式 */
+audio {
+  width: 100%;
+  margin: 15px 0;
+  background: var(--audio-bg);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+audio::-webkit-media-controls-panel {
+  background-color: var(--audio-bg) !important;
+}
+
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-mute-button {
+  color: var(--audio-controls) !important;
+}
+
+audio::-webkit-media-controls-play-button:hover,
+audio::-webkit-media-controls-mute-button:hover {
+  color: var(--audio-controls-hover) !important;
+}
+
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+  color: var(--audio-text) !important;
+}
+
+audio::-moz-range-track {
+  background-color: var(--audio-progress) !important;
+}
+
+audio::-moz-range-thumb {
+  background: var(--audio-controls) !important;
+}
+
+audio::-moz-range-thumb:hover {
+  background: var(--audio-controls-hover) !important;
+}
+
+/* 新增加载动画样式 */
+.loader {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 新增Toast通知样式 */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.9);
+  color: white;
+  z-index: 1001;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.toast-visible {
+  opacity: 1;
+}
+
+.toast-error {
+  background: #dc3545;
+}
+
+/* 手机端适配 */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .theme-switcher {
+    top: 10px;
+    right: 10px;
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .search-box {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #searchInput {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .container {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .song-list {
+    max-height: 50vh;
+    padding: 10px;
+    border-radius: 6px;
+  }
+
+  .song-item {
+    padding: 12px;
+    -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+  }
+
+  .song-detail {
+    padding: 15px;
+    border-radius: 6px;
+  }
+
+  .cover-img {
+    max-width: 120px;
+    margin: 10px auto;
+  }
+
+  audio {
+    margin: 10px 0;
+  }
+
+  /* 移动端音频控件优化 */
+  audio::-webkit-media-controls-panel {
+    padding: 8px;
+  }
+
+  audio::-webkit-media-controls-play-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  audio::-webkit-media-controls-current-time-display,
+  audio::-webkit-media-controls-time-remaining-display {
+    font-size: 12px;
+  }
+
+  /* 移动端歌词优化 */
+  .lyrics {
+    max-height: 40vh;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 8px;
+  }
+
+  /* 添加底部操作栏 */
+  .mobile-controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--secondary-bg);
+    padding: 10px;
+    display: flex;
+    justify-content: space-around;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    z-index: 1000;
+  }
+
+  .mobile-controls button {
+    flex: 1;
+    margin: 0 5px;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 4px;
+  }
+}
+
+/* 添加触控反馈 */
+.song-item {
+  transition: transform 0.1s ease;
+}
+
+.song-item:active {
+  transform: scale(0.98);
+}
+
+/* 防止双击缩放 */
+button, .song-item {
+  touch-action: manipulation;
+}
+
+/* 优化滚动体验 */
+.song-list, .lyrics {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
