@@ -287,6 +287,7 @@ const CacheManager = {
   },
 };
 
+
 /**
  * 音乐播放器核心模块（事件驱动架构）
  */
@@ -299,6 +300,106 @@ const MusicPlayer = {
   init() {
     this.bindEvents();
     this.setupGlobalErrorHandling();
+    this.initLazyLoadImages();
+    this.initAudioPreload();
+  },
+  
+  /**
+   * 初始化图片懒加载。
+   */
+  initLazyLoadImages() {
+    document.querySelectorAll('.cover-img').forEach(img => this.lazyLoadImage(img));
+  },
+  
+  /**
+   * 图片懒加载优化。
+   */
+  lazyLoadImage(imgElement) {
+    imgElement.style.backgroundColor = '#f0f0f0';
+    imgElement.addEventListener('load', () => {
+      imgElement.style.backgroundColor = 'transparent';
+    });
+    imgElement.addEventListener('error', () => {
+      imgElement.src = 'fallback.jpg';
+      imgElement.alt = '图片加载失败';
+    });
+    imgElement.loading = 'lazy';
+    imgElement.src = imgElement.dataset.src;
+  },
+
+  /**
+   * 初始化音频预加载。
+   */
+  initAudioPreload() {
+    document.querySelectorAll('audio').forEach(audio => this.optimizeAudioPreload(audio));
+  },
+
+  /**
+   * 音频预加载优化。
+   */
+  optimizeAudioPreload(audioElement) {
+    audioElement.preload = 'none';
+    audioElement.addEventListener('play', () => {
+      if (!audioElement.src) {
+        audioElement.src = audioElement.dataset.src;
+      }
+    });
+    audioElement.addEventListener('error', () => {
+      Utils.showToast('音频加载失败，请稍后重试', 'error');
+    });
+  },
+  
+  /**
+   * 改进版歌词同步（精确匹配当前行）
+   */
+  setupLyricsSync(audioElement) {
+    if (!audioElement || !audioElement.parentElement) return;
+
+    const lyricsContainer = audioElement.parentElement.querySelector('.lyrics');
+    if (!lyricsContainer) return;
+
+    // 清空旧事件监听器
+    audioElement.removeEventListener('timeupdate', this.handleTimeUpdate);
+
+    // 绑定新事件
+    this.handleTimeUpdate = () => {
+      const currentTime = audioElement.currentTime;
+      const lyricLines = lyricsContainer.querySelectorAll('[data-time]');
+
+      let activeLine = null;
+      for (let i = 0; i < lyricLines.length; i++) {
+        const lineTime = parseFloat(lyricLines[i].dataset.time);
+        const nextLineTime = i < lyricLines.length - 1 ? parseFloat(lyricLines[i + 1].dataset.time) : Infinity;
+
+        // 匹配当前时间所在的区间
+        if (currentTime >= lineTime && currentTime < nextLineTime) {
+          activeLine = lyricLines[i];
+          break;
+        }
+      }
+
+      if (activeLine && activeLine !== this.lastHighlightedLine) {
+		// 移除旧高亮
+        this.lastHighlightedLine?.classList.remove('highlight');
+		// 添加新高亮
+        activeLine.classList.add('highlight');
+        this.lastHighlightedLine = activeLine;
+		
+		// 计算滚动位置
+      const containerHeight = lyricsContainer.clientHeight;
+      const lineTop = activeLine.offsetTop;
+      const lineHeight = activeLine.offsetHeight;
+      const targetScrollTop = lineTop - (containerHeight / 2) + (lineHeight / 2);
+      
+        // 平滑滚动到中央
+        lyricsContainer.scrollTo({
+          top: targetScrollTop,
+          behavior: 'smooth'
+        });
+	  }
+    };
+
+    audioElement.addEventListener('timeupdate', this.handleTimeUpdate);
   },
   
   /**
@@ -343,6 +444,34 @@ const MusicPlayer = {
         if (e.target.value.trim()) this.searchSongs();
       }, 500);
     });
+  },
+
+  /**
+   * 解析歌词（过滤元数据）
+   * @param {string} lyric - 原始歌词字符串
+   * @returns {Array} 解析后的歌词数组
+   */
+  parseLyric(lyric) {
+    // 替换转义换行符
+    const lines = lyric.replace(/\\n/g, '\n').split('\n');
+    const parsedLyrics = [];
+
+    lines.forEach(line => {
+      // 匹配时间戳行（格式：[00:00.00]歌词内容）
+      const match = line.match(/^\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
+      if (match) {
+        const min = parseInt(match[1]);    // 分钟
+        const sec = parseInt(match[2]);    // 秒
+        const ms = parseInt(match[3].padEnd(3, '0')); // 补全毫秒（如 "81" → "810"）
+        const text = match[4].trim();      // 歌词内容
+		const time = min * 60 + sec + ms / 1000;      // 转换为浮点秒数
+
+        parsedLyrics.push({ time, text });
+      }
+      // 忽略其他元数据（如 [ti:...], [ar:...]）
+    });
+
+    return parsedLyrics;
   },
 
   /**
@@ -494,16 +623,16 @@ const MusicPlayer = {
   },
 
   /**
-   * 渲染歌曲详情（含懒加载优化）
-   * @param {Object} detail - 歌曲元数据
-   * 包含：
-   * - 封面图片（延迟加载）
-   * - 音频播放器（错误监控）
-   * - 可点击歌词（时间轴跳转）
+   * 渲染歌曲详情
    */
   renderSongDetail(detail) {
     const detailContainer = document.getElementById('songDetail');
-    const lyrics = this.formatLyrics(detail.lyric);
+    const parsedLyrics = this.parseLyric(detail.lyric);
+
+    // 渲染歌词
+    const lyricsHTML = parsedLyrics
+      .map(line => `<div data-time="${line.time}" class="lyric-time">${line.text}</div>`)
+      .join('');
 
     detailContainer.innerHTML = `
       <h2>${Utils.escapeHtml(detail.song_name)}</h2>
@@ -520,30 +649,17 @@ const MusicPlayer = {
         您的浏览器不支持音频播放
       </audio>
       <h3>歌词：</h3>
-      <div class="lyrics">${lyrics}</div>
+      <div class="lyrics">${lyricsHTML}</div>
     `;
 
-    // 图片懒加载
     const img = detailContainer.querySelector('img');
     img.src = img.dataset.src;
-	
-    // 音频错误处理
-    this.setupAudioHandling(detailContainer.querySelector('audio'));
-  },
-  
-  /**
-   * 歌词时间轴格式化（正则替换）
-   * 转换示例：
-   * "[01:23.45]" → "<span data-time="83">"
-   */
-  formatLyrics(lyric) {
-    return lyric
-      .replace(/\\n/g, '\n')
-      .replace(/\[(\d{2}):(\d{2})\.\d{2,3}\]/g, (match, min, sec) => {
-        const timestamp = parseInt(min) * 60 + parseInt(sec);
-        return `<span data-time="${timestamp}" class="lyric-time">`;
-      })
-      .trim();
+
+    const audioElement = detailContainer.querySelector('audio');
+    if (audioElement) {
+      this.setupAudioHandling(audioElement);
+      this.setupLyricsSync(audioElement); // 初始化歌词同步
+    }
   },
 
   // 音频处理
@@ -552,6 +668,7 @@ const MusicPlayer = {
       this.currentAudio.pause();
     }
     this.currentAudio = audioElement;
+	this.setupLyricsSync(audioElement); // 新增调用
 
     // 歌词点击跳转
     audioElement.parentElement.querySelector('.lyrics').addEventListener('click', (e) => {
@@ -581,6 +698,21 @@ const MusicPlayer = {
       }
       Utils.showToast(message, 'error');
     });
+  },
+  
+  /**
+   * 新增：移动端优化
+   */
+  initMobileOptimization() {
+    if (window.innerWidth <= 768) {
+      document.getElementById('searchInput').focus();
+      document.querySelector('.theme-preview').style.display = 'none';
+
+      document.querySelectorAll('.song-item').forEach(item => {
+        item.addEventListener('touchstart', () => item.style.transform = 'scale(0.98)');
+        item.addEventListener('touchend', () => item.style.transform = 'scale(1)');
+      });
+    }
   },
 
   /**
@@ -618,4 +750,5 @@ const MusicPlayer = {
 document.addEventListener('DOMContentLoaded', () => {
   ThemeManager.init();    // 先初始化主题（避免页面闪烁）
   MusicPlayer.init();     // 后初始化播放器（依赖DOM元素）
+  MusicPlayer.initMobileOptimization(); // 初始化移动端优化
 });

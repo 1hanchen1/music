@@ -255,6 +255,7 @@ button:hover {
     border-color 0.4s ease;
 }
 
+/* 图片懒加载占位符 */
 .cover-img {
   width: 100%;
   max-width: 200px;
@@ -264,16 +265,18 @@ button:hover {
   border-radius: 8px;
   margin-bottom: 15px;
   border: 2px solid var(--primary-color);
+  background-color: var(--secondary-bg);
+  transition: background-color 0.3s ease;
 }
 
+/* 歌词容器 */
 .lyrics {
-  white-space: pre-wrap;
-  max-height: 300px;
-  overflow-y: auto;
-  background: var(--bg-color);
-  padding: 10px;
-  border-radius: 4px;
-  border: 1px solid var(--border-color);
+  max-height: 300px;       /* 固定高度 */
+  overflow-y: auto;        /* 允许滚动 */
+  padding: 20px;
+  background: var(--secondary-bg);
+  border-radius: 8px;
+  position: relative;      /* 为子元素定位提供基准 */
 }
 
 .player-link {
@@ -362,111 +365,6 @@ audio::-moz-range-thumb:hover {
   background: #dc3545;
 }
 
-/* 手机端适配 */
-@media (max-width: 768px) {
-  body {
-    padding: 10px;
-  }
-
-  .theme-switcher {
-    top: 10px;
-    right: 10px;
-    padding: 8px;
-    font-size: 14px;
-  }
-
-  .search-box {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  #searchInput {
-    font-size: 14px;
-    padding: 8px;
-  }
-
-  button {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-  }
-
-  .container {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-
-  .song-list {
-    max-height: 50vh;
-    padding: 10px;
-    border-radius: 6px;
-  }
-
-  .song-item {
-    padding: 12px;
-    -webkit-tap-highlight-color: rgba(0,0,0,0.1);
-  }
-
-  .song-detail {
-    padding: 15px;
-    border-radius: 6px;
-  }
-
-  .cover-img {
-    max-width: 120px;
-    margin: 10px auto;
-  }
-
-  audio {
-    margin: 10px 0;
-  }
-
-  /* 移动端音频控件优化 */
-  audio::-webkit-media-controls-panel {
-    padding: 8px;
-  }
-
-  audio::-webkit-media-controls-play-button {
-    width: 32px;
-    height: 32px;
-  }
-
-  audio::-webkit-media-controls-current-time-display,
-  audio::-webkit-media-controls-time-remaining-display {
-    font-size: 12px;
-  }
-
-  /* 移动端歌词优化 */
-  .lyrics {
-    max-height: 40vh;
-    font-size: 14px;
-    line-height: 1.6;
-    padding: 8px;
-  }
-
-  /* 添加底部操作栏 */
-  .mobile-controls {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--secondary-bg);
-    padding: 10px;
-    display: flex;
-    justify-content: space-around;
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-    z-index: 1000;
-  }
-
-  .mobile-controls button {
-    flex: 1;
-    margin: 0 5px;
-    padding: 10px;
-    font-size: 14px;
-    border-radius: 4px;
-  }
-}
-
 /* 添加触控反馈 */
 .song-item {
   transition: transform 0.1s ease;
@@ -512,4 +410,153 @@ button, .song-item {
 .refresh-btn:hover {
     background: var(--primary-color);
     color: white;
+}
+
+/* 歌词行 */
+.lyric-time {
+  padding: 8px 0;
+  transition: all 0.3s ease;
+  text-align: center;      /* 水平居中 */
+}
+
+/* 高亮行样式 */
+.lyric-time.highlight {
+  color: var(--primary-color);
+  font-weight: bold;
+  transform: scale(1.05);  /* 轻微放大 */
+  text-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+}
+
+@keyframes pulse {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
+}
+
+/* 歌词容器优化 */
+.lyrics {
+  line-height: 1.8;
+  font-size: 16px;
+  padding: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* 手机端适配 */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .autocomplete-suggestions {
+    width: calc(100% - 10px);
+  }
+
+  .theme-switcher {
+    top: 10px;
+    right: 10px;
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .search-box {
+    position: relative;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #searchInput {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .container {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .song-list {
+    max-height: 50vh;
+    padding: 10px;
+    border-radius: 6px;
+  }
+
+  .song-item {
+    padding: 12px;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s;
+  }
+  
+  .song-item:active {
+    transform: scale(0.95);
+  }
+
+  .song-detail {
+    padding: 15px;
+    border-radius: 6px;
+  }
+
+  .cover-img {
+    max-width: 120px;
+    margin: 10px auto;
+  }
+
+  audio {
+    margin: 10px 0;
+  }
+
+  /* 移动端音频控件优化 */
+  audio::-webkit-media-controls-panel {
+    padding: 8px;
+  }
+
+  audio::-webkit-media-controls-play-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  audio::-webkit-media-controls-current-time-display,
+  audio::-webkit-media-controls-time-remaining-display {
+    font-size: 12px;
+  }
+
+  /* 移动端歌词优化 */
+  .lyrics {
+    max-height: 50vh;     /* 移动端高度适配 */
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 10px;
+  }
+
+  .lyric-time {
+    font-size: 14px;      /* 缩小字体 */
+  }
+
+  /* 添加底部操作栏 */
+  .mobile-controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--secondary-bg);
+    padding: 10px;
+    display: flex;
+    justify-content: space-around;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    z-index: 1000;
+  }
+
+  .mobile-controls button {
+    flex: 1;
+    margin: 0 5px;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 4px;
+  }
 }
