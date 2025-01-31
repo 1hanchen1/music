@@ -1,5 +1,9 @@
 // ====================== 工具模块 ======================
+// 在Utils对象顶部添加队列变量
 const Utils = {
+  toastQueue: [],
+  isShowingToast: false,
+  
   // HTML转义防止XSS
   escapeHtml: (str) => {
     const div = document.createElement('div');
@@ -7,20 +11,35 @@ const Utils = {
     return div.innerHTML;
   },
 
-  // Toast通知组件
-  showToast: (message, type = 'info') => {
+  // Toast通知组件  
+  showToast: function (message, type = 'info') {
+    this.toastQueue.push({ message, type });
+	if (!this.isShowingToast) this.processToastQueue();
+  },
+  
+  processToastQueue: function () {
+	if (this.toastQueue.length === 0) {
+	  this.isShowingToast = false;
+	  return;
+	}
+	
+    this.isShowingToast = true;
+    const { message, type } = this.toastQueue.shift();
     const toast = document.createElement('div');
-	toast.className = `toast toast-${type}`;
-	toast.textContent = message;
-	document.body.appendChild(toast);
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+	
+    // 显示动画
+    setTimeout(() => toast.classList.add('toast-visible'), 10);
 
-	// 显示动画
-	setTimeout(() => toast.classList.add('toast-visible'), 10);
-
-	// 自动移除
-	setTimeout(() => {
+    // 自动移除
+    setTimeout(() => {
       toast.classList.remove('toast-visible');
-      setTimeout(() => toast.remove(), 300);
+      setTimeout(() => {
+        toast.remove();
+        this.processToastQueue();
+      }, 300);
     }, 3000);
   },
 
@@ -37,7 +56,17 @@ const Utils = {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const error = new Error(`HTTP错误 ${response.status}`);
+        let errorMessage = `HTTP错误 ${response.status}`;
+        switch (response.status) {
+          case 400: errorMessage = '请求参数错误'; break;
+          case 401: errorMessage = '未授权，请登录'; break;
+          case 403: errorMessage = '禁止访问'; break;
+          case 404: errorMessage = '资源未找到'; break;
+          case 500: errorMessage = '服务器内部错误'; break;
+          case 503: errorMessage = '服务不可用'; break;
+          default: errorMessage = `HTTP错误 ${response.status}`;
+        }
+        const error = new Error(errorMessage);
         error.status = response.status;
         throw error;
       }
@@ -45,7 +74,9 @@ const Utils = {
     } catch (error) {
       if (error.name === 'AbortError') {
         error.message = `请求超时（${timeout}ms）`;
-      }
+      } else if (error.name === 'TypeError') {
+		error.message = '网络请求失败，请检查网络连接';
+	  }
       throw error;
     }
   }
@@ -70,8 +101,16 @@ const ThemeManager = {
   },
 
   availableThemes: [
-    'light', 'dark', 'vintage', 'eye-care', 'purple',
-    'tech-blue', 'warm-red', 'nature-green', 'minimal-gray', 'cyberpunk'
+    'light',
+    'dark',
+    'vintage',
+    'eye-care',
+    'purple',
+    'tech-blue',
+    'warm-red',
+    'nature-green',
+    'minimal-gray',
+    'cyberpunk',
   ],
 
   changeTheme(theme) {
@@ -153,7 +192,7 @@ const CacheManager = {
     const keys = Object.keys(cache);
     if (keys.length > this.config.maxItems) {
       keys.sort((a, b) => cache[a].lru - cache[b].lru);
-      keys.slice(0, keys.length - this.config.maxItems).forEach(k => delete cache[k]);
+      keys.slice(0, keys.length - this.config.maxItems).forEach((k) => delete cache[k]);
     }
 
     return cache;
@@ -170,7 +209,15 @@ const CacheManager = {
   // 清空缓存（可绑定到清除按钮）
   clear() {
     localStorage.removeItem(this.config.storageKey);
-  }
+  },
+  
+  // 删除单个缓存
+  deleteKey(query) {
+    const cache = JSON.parse(localStorage.getItem(this.config.storageKey)) || {};
+    const key = this.generateKey(query);
+    delete cache[key];
+    localStorage.setItem(this.config.storageKey, JSON.stringify(cache));
+  },
 };
 
 // ====================== 音乐播放器模块 ======================
@@ -207,6 +254,15 @@ const MusicPlayer = {
       CacheManager.clear();
       Utils.showToast('已清除所有缓存', 'success');
     });
+	
+	// 搜索输入框防抖
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        if (e.target.value.trim()) this.searchSongs();
+      }, 500);
+    });
   },
 
   // 搜索功能
@@ -227,27 +283,28 @@ const MusicPlayer = {
       }
 
       // 无缓存则请求API
-      const response = await fetch(
+      const response = await Utils.safeFetch(
         `https://www.hhlqilongzhu.cn/api/dg_shenmiMusic_SQ.php?msg=${encodeURIComponent(query)}&type=json`
       );
 
-      if (!response.ok) throw new Error(`请求失败: ${response.status}`);
+      const validData = this.validateData(response);
 
-      const data = await response.json();
-      const validData = this.validateData(data);
-        
-      // 缓存有效数据
-      if (validData.length > 0) {
-        CacheManager.set(query, validData);
-      }
-        
-      this.renderResults(validData);
+	  // 缓存有效数据
+	  if (validData.length > 0) {
+		CacheManager.set(query, validData);
+	  }
+	  
+	  this.renderResults(validData);
         
     } catch (error) {
-        Utils.showToast(`搜索失败: ${error.message}`, 'error');
+      let errorMessage = `搜索失败: ${error.message}`;
+      if (error.status === 404) errorMessage = '未找到相关歌曲，请尝试其他关键词';
+      else if (error.status === 500) errorMessage = '服务器内部错误，请稍后重试';
+      else if (error.message.includes('超时')) errorMessage = '请求超时，请检查网络连接';
+      Utils.showToast(errorMessage, 'error');
     } finally {
-        searchBtn.disabled = false;
-        searchBtn.textContent = '搜索';
+      searchBtn.disabled = false;
+      searchBtn.textContent = '搜索';
     }
   },
 
@@ -268,16 +325,19 @@ const MusicPlayer = {
     
     // 绑定刷新按钮
     resultHeader.querySelector('.refresh-btn').addEventListener('click', () => {
-      CacheManager.clear(); // 或仅删除该查询的缓存
+      CacheManager.deleteKey(query); // 或仅删除该查询的缓存
       this.searchSongs();
     });
   },
   
+  // 增强版数据验证
   validateData(data) {
-    if (!Array.isArray(data?.data)) {
-      throw new Error('无效的歌曲数据格式');
-    }
-    return data.data.filter(song => song.n && song.song_title && song.song_singer);
+    if (!Array.isArray(data?.data)) throw new Error('无效的歌曲数据格式');
+	
+	const validData = data.data.filter(song => song.n && song.song_title && song.song_singer);
+    if (validData.length === 0) throw new Error('未找到有效歌曲数据');
+    
+    return validData;
   },
 
   renderResults(data) {
@@ -305,31 +365,7 @@ const MusicPlayer = {
     listContainer.appendChild(fragment);
   },
 
-  // 渲染歌曲列表
-  renderSongList(songs) {
-    const listContainer = document.getElementById('songList');
-    const query = Utils.escapeHtml(document.getElementById('searchInput').value);
-	
-	// 使用文档碎片优化性能
-	const fragment = document.createDocumentFragment();
-	
-	songs.forEach(song => {
-      const div = document.createElement('div');
-      div.className = 'song-item';
-      div.dataset.query = query;
-      div.dataset.n = song.n;
-      div.innerHTML = `
-        <div>${song.n}. ${Utils.escapeHtml(song.song_title)}</div>
-        <small>${Utils.escapeHtml(song.song_singer)}</small>
-      `;
-      fragment.appendChild(div);
-    });
-
-    listContainer.innerHTML = '';
-    listContainer.appendChild(fragment);
-  },
-  
-  // 显示歌曲详情
+  // 改进版详情获取
   async showSongDetail(query, n) {
     try {
       const data = await Utils.safeFetch(
@@ -339,11 +375,32 @@ const MusicPlayer = {
       );
 
       if (data.code !== 200) throw new Error(data.msg || '获取详情失败');
-	  this.renderSongDetail(data.data);
+      this.renderSongDetail(data.data);
 	} catch (error) {
-	  Utils.showToast(`获取详情失败: ${error.message}`, 'error');
+      let errorMessage = `获取详情失败: ${error.message}`;
+      if (error.status === 404) errorMessage = '未找到歌曲详情，请尝试其他歌曲';
+      else if (error.status === 500) errorMessage = '服务器内部错误，请稍后重试';
+      else if (error.message.includes('超时')) errorMessage = '请求超时，请检查网络连接';
+      Utils.showToast(errorMessage, 'error');
       console.error('详情错误:', error);
     }
+  },
+  
+  // 增强版全局错误处理
+  setupGlobalErrorHandling() {
+    window.addEventListener('error', (e) => {
+      let errorMessage = '发生意外错误';
+      if (e.error instanceof Error) errorMessage = e.error.message;
+      Utils.showToast(errorMessage, 'error');
+      console.error('全局错误:', e.error);
+    });
+
+    window.addEventListener('unhandledrejection', (e) => {
+      let errorMessage = '异步操作失败';
+      if (e.reason instanceof Error) errorMessage = e.reason.message;
+      Utils.showToast(errorMessage, 'error');
+      console.error('未处理的Promise错误:', e.reason);
+    });
   },
 
   // 渲染歌曲详情
@@ -408,10 +465,18 @@ const MusicPlayer = {
     audioElement.addEventListener('error', () => {
       let message = '音频加载失败';
       switch (audioElement.error.code) {
-        case 1: message += ' (操作中止)'; break;
-        case 2: message += ' (网络错误)'; break;
-        case 3: message += ' (解码错误)'; break;
-        case 4: message += ' (格式不支持)'; break;
+        case 1:
+          message += ' (操作中止)';
+          break;
+        case 2:
+          message += ' (网络错误)';
+          break;
+        case 3:
+          message += ' (解码错误)';
+          break;
+        case 4:
+          message += ' (格式不支持)';
+          break;
       }
       Utils.showToast(message, 'error');
     });
