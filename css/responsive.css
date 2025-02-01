@@ -1,0 +1,94 @@
+/* ==================== 响应式设计 ==================== */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .autocomplete-suggestions {
+        width: calc(100% - 10px);
+    }
+
+	button {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .search-box {
+        position: relative;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+	#searchInput {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .theme-switcher {
+        top: 10px;
+        right: 10px;
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .song-list {
+        max-height: 50vh;
+        padding: 10px;
+        border-radius: 6px;
+    }
+
+    .song-item {
+        padding: 12px;
+        -webkit-tap-highlight-color: transparent;
+        transition: transform 0.1s;
+    }
+
+    .song-item:active {
+        transform: scale(0.98);
+    }
+
+    .song-detail {
+        padding: 15px;
+        border-radius: 6px;
+    }
+
+    .cover-img {
+        max-width: 120px;
+        margin: 10px auto;
+    }
+
+    audio {
+        margin: 10px 0;
+    }
+
+    audio::-webkit-media-controls-panel {
+        padding: 8px;
+    }
+
+    audio::-webkit-media-controls-play-button {
+        width: 32px;
+        height: 32px;
+    }
+
+    audio::-webkit-media-controls-current-time-display,
+    audio::-webkit-media-controls-time-remaining-display {
+        font-size: 12px;
+    }
+
+    .lyrics {
+        max-height: 50vh;
+        font-size: 14px;
+        line-height: 1.6;
+        padding: 10px;
+    }
+
+    .lyric-time {
+        font-size: 14px;
+    }
+}

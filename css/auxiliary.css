@@ -1,0 +1,146 @@
+/* ==================== 辅助样式 ==================== */
+.theme-preview {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--secondary-bg);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.theme-preview-item {
+    width: 40px;
+    height: 40px;
+    margin: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid var(--border-color);
+    transition: transform 0.2s;
+}
+
+.theme-preview-item:hover {
+    transform: scale(1.1);
+}
+
+.theme-switcher {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 8px 12px;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    z-index: 1000;
+}
+
+.api-tag {
+    font-size: 0.75em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    background: rgba(0,0,0,0.1);
+}
+
+.api-tag.api1 { color: #007bff; border: 1px solid #007bff; }
+
+.api-tag.api2 { color: #28a745; border: 1px solid #28a745; }
+
+.quality-tag {
+    font-size: 0.8em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+}
+
+.quality-tag.api1 {
+    color: #007bff;
+    border-color: #007bff;
+}
+
+.quality-tag.api2 {
+    color: #28a745;
+    border-color: #28a745;
+}
+
+.loader {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.9);
+    color: white;
+    z-index: 1001;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.toast-visible {
+    opacity: 1;
+}
+
+.toast-error {
+    background: #dc3545;
+}
+
+.cache-indicator {
+    background: var(--secondary-bg);
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--primary-color);
+}
+
+.refresh-btn {
+    background: none;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+button, .song-item {
+  touch-action: manipulation;
+}
+
+.song-list, .lyrics {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}

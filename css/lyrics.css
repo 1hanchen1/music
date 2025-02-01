@@ -1,0 +1,40 @@
+/* ==================== 歌词样式 ==================== */
+.lyrics {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 20px;
+    background: var(--secondary-bg);
+    border-radius: 8px;
+    position: relative;
+    line-height: 1.8;
+    font-size: 16px;
+}
+
+.player-link {
+  display: block;
+  margin: 15px 0;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.lyrics:empty::before {
+    content: "暂无歌词";
+    color: var(--text-color);
+    opacity: 0.6;
+    text-align: center;
+    display: block;
+    padding: 20px;
+}
+
+.lyric-time {
+    padding: 8px 0;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.lyric-time.highlight {
+    color: var(--primary-color);
+    font-weight: bold;
+    transform: scale(1.05);
+    text-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+}

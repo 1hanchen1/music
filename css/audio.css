@@ -1,0 +1,39 @@
+/* ==================== 音频控件样式 ==================== */
+audio {
+    width: 100%;
+    margin: 15px 0;
+    background: var(--audio-bg);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+audio::-webkit-media-controls-panel {
+    background-color: var(--audio-bg) !important;
+}
+
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-mute-button {
+    color: var(--audio-controls) !important;
+}
+
+audio::-webkit-media-controls-play-button:hover,
+audio::-webkit-media-controls-mute-button:hover {
+  color: var(--audio-controls-hover) !important;
+}
+
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+  color: var(--audio-text) !important;
+}
+
+audio::-moz-range-track {
+  background-color: var(--audio-progress) !important;
+}
+
+audio::-moz-range-thumb {
+  background: var(--audio-controls) !important;
+}
+
+audio::-moz-range-thumb:hover {
+  background: var(--audio-controls-hover) !important;
+}

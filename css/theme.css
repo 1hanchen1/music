@@ -1,0 +1,128 @@
+/* ==================== 全局变量和主题定义 ==================== */
+/* 默认主题 */
+:root {
+	--primary-color: #007bff;
+	--bg-color: #ffffff;
+	--text-color: #333333;
+	--secondary-bg: #f8f9fa;
+    --border-color: #dee2e6;
+    --audio-bg: #f0f0f0;
+    --audio-controls: #444;
+    --audio-controls-hover: #222;
+    --audio-text: #333;
+}
+
+/* 深色主题 */
+[data-theme="dark"] {
+    --primary-color: #20c997;
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --secondary-bg: #2d2d2d;
+    --border-color: #404040;
+    --audio-bg: #2d2d2d;
+    --audio-controls: #e0e0e0;
+    --audio-controls-hover: #ffffff;
+    --audio-text: #e0e0e0;
+}
+
+/* 复古主题 */
+[data-theme="vintage"] {
+    --primary-color: #d4a373;
+    --bg-color: #fefae0;
+    --text-color: #606c38;
+    --secondary-bg: #faedcd;
+    --border-color: #ccd5ae;
+    --audio-bg: #faedcd;
+    --audio-controls: #606c38;
+    --audio-controls-hover: #4a5530;
+    --audio-text: #4a3820;
+}
+
+/* 护眼主题 */
+[data-theme="eye-care"] {
+    --primary-color: #8bc34a;
+    --bg-color: #e3f2fd;
+    --text-color: #37474f;
+    --border-color: #c5e1a5;
+    --audio-bg: #f1f8e9;
+    --audio-controls: #37474f;
+    --audio-controls-hover: #263238;
+    --audio-text: #2e4a45;
+}
+
+/* 紫色梦幻主题 */
+[data-theme="purple"] {
+    --primary-color: #9c27b0;
+    --bg-color: #f3e5f5;
+    --text-color: #4a148c;
+    --border-color: #ce93d8;
+    --audio-bg: #ede7f6;
+    --audio-controls: #6a1b9a;
+    --audio-controls-hover: #4a148c;
+    --audio-text: #4a148c;
+}
+
+/* 科技蓝主题 */
+[data-theme="tech-blue"] {
+    --primary-color: #2196F3;
+    --bg-color: #E3F2FD;
+    --text-color: #0D47A1;
+    --secondary-bg: #BBDEFB;
+    --border-color: #90CAF9;
+    --audio-bg: #BBDEFB;
+    --audio-controls: #1565C0;
+    --audio-controls-hover: #0D47A1;
+    --audio-text: #0D47A1;
+}
+
+/* 热情红主题 */
+[data-theme="warm-red"] {
+    --primary-color: #F44336;
+    --bg-color: #FFEBEE;
+    --text-color: #B71C1C;
+    --secondary-bg: #FFCDD2;
+    --border-color: #EF9A9A;
+    --audio-bg: #FFCDD2;
+    --audio-controls: #C62828;
+    --audio-controls-hover: #B71C1C;
+    --audio-text: #8E0E00;
+}
+
+/* 自然绿主题 */
+[data-theme="nature-green"] {
+    --primary-color: #4CAF50;
+    --bg-color: #E8F5E9;
+    --text-color: #1B5E20;
+    --secondary-bg: #C8E6C9;
+    --border-color: #A5D6A7;
+    --audio-bg: #C8E6C9;
+    --audio-controls: #2E7D32;
+    --audio-controls-hover: #1B5E20;
+    --audio-text: #1B5E20;
+}
+
+/* 简约灰主题 */
+[data-theme="minimal-gray"] {
+    --primary-color: #607D8B;
+    --bg-color: #ECEFF1;
+    --text-color: #37474F;
+    --secondary-bg: #CFD8DC;
+    --border-color: #B0BEC5;
+    --audio-bg: #CFD8DC;
+    --audio-controls: #455A64;
+    --audio-controls-hover: #37474F;
+    --audio-text: #263238;
+}
+
+/* 赛博朋克主题 */
+[data-theme="cyberpunk"] {
+    --primary-color: #FF6B6B;
+    --bg-color: #2D2D2D;
+    --text-color: #00FF9D;
+    --secondary-bg: #1A1A1A;
+    --border-color: #FF6B6B;
+    --audio-bg: #1A1A1A;
+    --audio-controls: #00FF9D;
+    --audio-controls-hover: #00CC7A;
+    --audio-text: #FF6B6B;
+}
