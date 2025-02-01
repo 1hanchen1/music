@@ -11,3 +11,5 @@ document.addEventListener('DOMContentLoaded', () => {
   MusicPlayer.init();     // 后初始化播放器（依赖DOM元素）
   MusicPlayer.initMobileOptimization(); // 初始化移动端优化
 });
+
+export default app;
