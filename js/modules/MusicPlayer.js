@@ -608,6 +608,13 @@ const MusicPlayer = {
       console.warn(`未找到 ${source} 的字段映射，使用默认值`);
       fields = fieldMap.default;
     }
+
+    // 设置网站标题
+    const defaultTitle = "神秘音乐搜索"; // 默认标题
+    const finalTitle = (songName !== '未知歌曲' && artist !== '未知歌手') 
+      ? `${songName} - ${artist}` 
+      : defaultTitle;
+    document.title = finalTitle;
 	  
     // 渲染详情
     const detailContainer = document.getElementById('songDetail');
