@@ -236,7 +236,9 @@ const MusicPlayer = {
         const text = match[4].trim();      // 歌词内容
         const time = min * 60 + sec + ms / 1000;      // 转换为浮点秒数
 
-        parsedLyrics.push({ time, text });
+        if (text) { // 确保只保留有歌词的部分
+          parsedLyrics.push({ time, text });
+        }
       }
       // 忽略其他元数据（如 [ti:...], [ar:...]）
     });
