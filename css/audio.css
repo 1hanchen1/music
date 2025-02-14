@@ -37,30 +37,3 @@ audio::-moz-range-thumb {
 audio::-moz-range-thumb:hover {
   background: var(--audio-controls-hover) !important;
 }
-
-.audio-controls {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.download-container {
-  flex: 0 0 auto;
-}
-
-.download-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  font-size: 14px;
-}
-
-.download-icon {
-  margin-right: 8px;
-}

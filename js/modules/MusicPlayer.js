@@ -657,15 +657,17 @@ const MusicPlayer = {
     `;
 
     // 绑定下载事件
-    const downloadBtn = detailContainer.querySelector('.download-btn');
-    if (downloadBtn) {
+    if (musicUrl) {
+      const downloadBtn = detailContainer.querySelector('.download-btn');
       downloadBtn.addEventListener('click', () => {
-        this.downloadSong(musicUrl, songName, artist);
+        // 先检查是否已有进行中的下载
+        if (!document.querySelector('.download-progress')) {
+          this.downloadSong(musicUrl, songName, artist);
+        } else {
+          Utils.showToast('已有文件正在下载', 'warning');
+        }
       });
-    } else {
-      console.error('下载按钮未找到');
     }
-
     const img = detailContainer.querySelector('img');
     if (img) {
       img.src = cover;
@@ -680,53 +682,102 @@ const MusicPlayer = {
 
   // 新增下载方法
   downloadSong(url, songName, artist) {
-    // 清理文件名中的非法字符
     const cleanName = (str) => str.replace(/[/\\?%*:|"<>]/g, '');
     const safeSongName = cleanName(songName);
     const safeArtist = cleanName(artist);
   
-    // 改进版扩展名提取 --------------------------------------
-    // 1. 分离URL路径和查询参数
-    const [pathPart] = url.split(/[?#]/); // 丢弃所有参数和片段
-    // 2. 从路径中提取文件名
+    // 获取文件扩展名
+    const [pathPart] = url.split(/[?#]/);
     const fileName = pathPart.split('/').pop() || 'audio';
-    // 3. 安全提取扩展名（处理无扩展名情况）
     const extensionMatch = fileName.match(/\.([a-z0-9]+)$/i);
     const extension = extensionMatch ? extensionMatch[1] : 'unknown';
-  
-    // 创建最终文件名
     const filename = `${safeSongName} - ${safeArtist}.${extension}`.replace(/\.+/g, '.');
   
-    // 使用fetch和Blob实现下载（确保文件名控制）
-    fetch(url)
+    // 显示加载状态
+    Utils.showToast('开始下载，请稍候...', 'info');
+  
+    // 创建进度条容器
+    const progressContainer = document.createElement('div');
+    progressContainer.className = 'download-progress';
+    progressContainer.innerHTML = `
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 0%;"></div>
+      </div>
+      <span class="progress-text">0%</span>
+    `;
+    document.body.appendChild(progressContainer);
+  
+    const progressBar = progressContainer.querySelector('.progress-fill');
+    const progressText = progressContainer.querySelector('.progress-text');
+  
+    fetch(url, { method: 'GET' })
       .then(response => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.blob();
+  
+        // 获取总文件大小
+        const totalSize = parseInt(response.headers.get('content-length'), 10);
+        let loadedSize = 0;
+        const chunks = [];
+  
+        return new Promise((resolve, reject) => {
+          const reader = response.body.getReader();
+          function push() {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                resolve(chunks);
+                return;
+              }
+  
+              loadedSize += value.length;
+              const progress = Math.round((loadedSize / totalSize) * 100);
+              progressBar.style.width = `${progress}%`;
+              progressText.textContent = `${progress}%`;
+  
+              chunks.push(value);
+              push();
+            }).catch(err => {
+              reject(err);
+            });
+          }
+          push();
+        });
       })
-      .then(blob => {
+      .then(chunks => {
+        // 合并 chunks 为一个 Blob
+        const blob = new Blob(chunks, { type: 'audio/mpeg' });
+  
+        // 创建 Blob 链接
         const blobUrl = URL.createObjectURL(blob);
+  
+        // 创建隐藏的下载链接
         const link = document.createElement('a');
         link.href = blobUrl;
         link.download = filename;
         link.style.display = 'none';
   
-        link.onerror = () => {
-          URL.revokeObjectURL(blobUrl);
-          Utils.showToast('下载失败，文件可能已失效', 'error');
-        };
-  
+        // 确保添加到 DOM
         document.body.appendChild(link);
+  
+        // 触发下载
         link.click();
+  
+        // 延迟移除
         setTimeout(() => {
-          document.body.removeChild(link);
+          if (link.parentNode) {
+            document.body.removeChild(link);
+          }
           URL.revokeObjectURL(blobUrl);
+          document.body.removeChild(progressContainer); // 移除进度条
         }, 100);
   
+        // 显示成功提示
+        Utils.showToast('下载成功', 'success');
         console.log(`成功下载: ${filename}`);
       })
       .catch(error => {
         console.error('下载失败:', error);
         Utils.showToast(`下载失败: ${error.message}`, 'error');
+        document.body.removeChild(progressContainer); // 移除进度条
       });
   },
 
