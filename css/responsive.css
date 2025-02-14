@@ -81,6 +81,22 @@
         font-size: 12px;
     }
 
+    .audio-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .download-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+    }
+    
+    .download-icon {
+        margin-right: 10px;
+    }
+
     .lyrics {
         max-height: 50vh;
         font-size: 14px;

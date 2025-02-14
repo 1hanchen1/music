@@ -33,11 +33,11 @@ const MusicPlayer = {
       params: { gm: '', type: 'json', n: '', num: 20, br: 1 }
     },
     '酷狗音乐': {
-      url: 'https://www.hhlqilongzhu.cn/api/dg_kgmusic.php', // 替换为实际 URL
+      url: 'https://www.hhlqilongzhu.cn/api/dg_kgmusic.php', 
       params: { gm: '', type: 'json', n: '', num: 20, br: 1 }
     }
   },
-  
+
   // 构建请求 URL
   buildApiUrl(source, query, id = '') {
     const config = this.apiConfig[source];
@@ -63,14 +63,14 @@ const MusicPlayer = {
     this.initLazyLoadImages();
     this.initAudioPreload();
   },
-  
+
   /**
    * 初始化图片懒加载。
    */
   initLazyLoadImages() {
     document.querySelectorAll('.cover-img').forEach(img => this.lazyLoadImage(img));
   },
-  
+
   /**
    * 图片懒加载优化。
    */
@@ -108,7 +108,7 @@ const MusicPlayer = {
       Utils.showToast('音频加载失败，请稍后重试', 'error');
     });
   },
-  
+
   /**
    * 改进版歌词同步（精确匹配当前行）
    */
@@ -139,29 +139,29 @@ const MusicPlayer = {
       }
 
       if (activeLine && activeLine !== this.lastHighlightedLine) {
-		// 移除旧高亮
+        // 移除旧高亮
         this.lastHighlightedLine?.classList.remove('highlight');
-		// 添加新高亮
+        // 添加新高亮
         activeLine.classList.add('highlight');
         this.lastHighlightedLine = activeLine;
-		
-		// 计算滚动位置
-      const containerHeight = lyricsContainer.clientHeight;
-      const lineTop = activeLine.offsetTop;
-      const lineHeight = activeLine.offsetHeight;
-      const targetScrollTop = lineTop - (containerHeight / 2) + (lineHeight / 2);
-      
+
+        // 计算滚动位置
+        const containerHeight = lyricsContainer.clientHeight;
+        const lineTop = activeLine.offsetTop;
+        const lineHeight = activeLine.offsetHeight;
+        const targetScrollTop = lineTop - (containerHeight / 2) + (lineHeight / 2);
+
         // 平滑滚动到中央
         lyricsContainer.scrollTo({
           top: targetScrollTop,
           behavior: 'smooth'
         });
-	  }
+      }
     };
 
     audioElement.addEventListener('timeupdate', this.handleTimeUpdate);
   },
-  
+
   /**
    * 绑定所有交互事件（使用事件委托优化性能）
    * 包含：
@@ -173,29 +173,29 @@ const MusicPlayer = {
    */
   bindEvents() {
     // 搜索按钮
-	document.querySelector('.search-box button').addEventListener('click', () => this.searchSongs());
-	
-	// 回车键搜索
-	document.getElementById('searchInput').addEventListener('keypress', (e) => {
+    document.querySelector('.search-box button').addEventListener('click', () => this.searchSongs());
+
+    // 回车键搜索
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') this.searchSongs();
     });
-	
-	// 修改歌曲列表点击事件，传递来源信息
-	document.getElementById('songList').addEventListener('click', (e) => {
+
+    // 修改歌曲列表点击事件，传递来源信息
+    document.getElementById('songList').addEventListener('click', (e) => {
       const item = e.target.closest('.song-item');
       if (item) {
         const source = item.dataset.source; // 获取来源
         const id = parseInt(item.dataset.id, 10); // 确保 id 是数字
         const query = item.dataset.query; // 获取搜索关键词
-		
-		// 添加调试日志
+
+        // 添加调试日志
         console.log('点击的歌曲项:', { source, id, query });
 
         if (isNaN(id)) {
           Utils.showToast('无效的歌曲 ID', 'error');
           return;
         }
-		
+
         this.showSongDetail(source, id, query); // 传递source、id和query
       }
     });
@@ -205,8 +205,8 @@ const MusicPlayer = {
       CacheManager.clear();
       Utils.showToast('已清除所有缓存', 'success');
     });
-	
-	// 搜索输入框防抖
+
+    // 搜索输入框防抖
     let searchTimeout;
     document.getElementById('searchInput').addEventListener('input', (e) => {
       clearTimeout(searchTimeout);
@@ -234,7 +234,7 @@ const MusicPlayer = {
         const sec = parseInt(match[2]);    // 秒
         const ms = parseInt(match[3].padEnd(3, '0')); // 补全毫秒（如 "81" → "810"）
         const text = match[4].trim();      // 歌词内容
-		const time = min * 60 + sec + ms / 1000;      // 转换为浮点秒数
+        const time = min * 60 + sec + ms / 1000;      // 转换为浮点秒数
 
         parsedLyrics.push({ time, text });
       }
@@ -253,33 +253,33 @@ const MusicPlayer = {
   async searchSongs() {
     const searchBtn = document.querySelector('.search-box button');
     const query = document.getElementById('searchInput').value.trim();
-	
+
     try {
-	  // 显示加载状态
+      // 显示加载状态
       searchBtn.disabled = true;
       searchBtn.innerHTML = '<span class="loader"></span> 搜索中...';
-        
+
       // 优先读取缓存
       const cachedData = CacheManager.get(query);
       if (cachedData) {
         this.showCachedResults(cachedData, query);
         return;
       }
-	  
+
       // 同时调用两个API
-    const [api1Response, api2Response, api3Response] = await Promise.allSettled([
+      const [api1Response, api2Response, api3Response] = await Promise.allSettled([
         Utils.safeFetch(this.buildApiUrl('QQ音乐', query)),
         Utils.safeFetch(this.buildApiUrl('网易云', query)),
         Utils.safeFetch(this.buildApiUrl('酷狗音乐', query))
       ]);
-	  
+
       // 打印 API 响应
       console.log('API1 响应:', api1Response);
       console.log('API2 响应:', api2Response);
       console.log('API3 响应:', api3Response);
-	  
+
       // 处理API1结果
-      const api1Data = api1Response.status === 'fulfilled' ? 
+      const api1Data = api1Response.status === 'fulfilled' ?
         this.validateDataAPI1(api1Response.value) : [];
 
       // 处理API2结果
@@ -290,7 +290,7 @@ const MusicPlayer = {
       const api3Data = api3Response.status === 'fulfilled' ?
         this.validateDataAPI3(api3Response.value) : [];
 
-	  // 合并结果并去重
+      // 合并结果并去重
       const mergedData = this.mergeResults([...api1Data, ...api2Data, ...api3Data]);
 
       if (mergedData.length > 0) {
@@ -308,7 +308,7 @@ const MusicPlayer = {
       searchBtn.textContent = '搜索';
     }
   },
-  
+
   // API1数据验证
   validateDataAPI1(response) {
     // 假设 API1 返回格式为 { code: 200, data: [...] }
@@ -340,7 +340,7 @@ const MusicPlayer = {
       quality: this.mapQuality(song.br || 1)
     }));
   },
-  
+
   // API3数据验证
   validateDataAPI3(response) {
     // 假设 API3 返回格式为 { data: [...] }
@@ -363,7 +363,7 @@ const MusicPlayer = {
 
     return formattedResponse.data; // 返回格式化后的数据
   },
-  
+
   // 清理标题中的冗余信息（如 "泡沫 -- G.E.M.邓紫棋" → "泡沫"）
   cleanTitle(title) {
     return title
@@ -382,7 +382,7 @@ const MusicPlayer = {
       5: '高清环绕声',
       6: '沉浸环绕声',
       7: '超清母带',
-	  8: 'HQ高品质'
+      8: 'HQ高品质'
     };
     return qualityMap[br] || '未知音质';
   },
@@ -407,7 +407,7 @@ const MusicPlayer = {
   showCachedResults(data, query) {
     this.renderResults(data);
     Utils.showToast(`已显示缓存结果 (${new Date().toLocaleTimeString()})`, 'info');
-    
+
     // 添加缓存标识
     const resultHeader = document.createElement('div');
     resultHeader.className = 'cache-indicator';
@@ -415,16 +415,16 @@ const MusicPlayer = {
       <span>📁 缓存结果 - 搜索时间: ${new Date().toLocaleString()}</span>
       <button class="refresh-btn">刷新结果</button>
     `;
-    
+
     document.getElementById('songList').prepend(resultHeader);
-    
+
     // 绑定刷新按钮
     resultHeader.querySelector('.refresh-btn').addEventListener('click', () => {
       CacheManager.deleteKey(query); // 或仅删除该查询的缓存
       this.searchSongs();
     });
   },
-  
+
   /**
    * 高级数据验证（防御性编程）
    * @param {Object} data - 原始API响应
@@ -433,10 +433,10 @@ const MusicPlayer = {
    */
   validateData(data) {
     if (!Array.isArray(data?.data)) throw new Error('无效的歌曲数据格式');
-	
-	const validData = data.data.filter(song => song.n && song.song_title && song.song_singer);
+
+    const validData = data.data.filter(song => song.n && song.song_title && song.song_singer);
     if (validData.length === 0) throw new Error('未找到有效歌曲数据');
-    
+
     return validData;
   },
 
@@ -455,9 +455,9 @@ const MusicPlayer = {
       div.className = 'song-item';
       div.dataset.source = song.source; // 设置来源
       div.dataset.id = song.id; // 确保 id 是数字
-	  div.dataset.query = Utils.escapeHtml(document.getElementById('searchInput').value); // 设置搜索关键词
-      
-	  // 添加来源标识
+      div.dataset.query = Utils.escapeHtml(document.getElementById('searchInput').value); // 设置搜索关键词
+
+      // 添加来源标识
       div.innerHTML = `
         <div>${Utils.escapeHtml(song.title)}</div>
         <small>
@@ -488,7 +488,7 @@ const MusicPlayer = {
       if (!response || response.code !== 200) {
         throw new Error(`API 响应异常: ${response?.code || '无响应'}`);
       }
-	  
+
       // 统一数据访问逻辑
       let detailData;
       switch (source) {
@@ -510,7 +510,7 @@ const MusicPlayer = {
 
       // 渲染详情
       this.renderSongDetail(detailData, source);
-	  
+
     } catch (error) {
       let errorMessage = `获取详情失败: ${error.message}`;
       if (error.status === 404) errorMessage = '未找到歌曲详情，请尝试其他歌曲';
@@ -518,7 +518,7 @@ const MusicPlayer = {
       console.error('详情错误:', error);
     }
   },
-  
+
   // 增强版全局错误处理
   setupGlobalErrorHandling() {
     window.addEventListener('error', (e) => {
@@ -545,7 +545,7 @@ const MusicPlayer = {
       Utils.showToast('歌曲详情数据异常', 'error');
       return;
     }
-	
+
     // 字段映射表
     const fieldMap = {
       'QQ音乐': {
@@ -578,30 +578,30 @@ const MusicPlayer = {
         url: 'music_url'
       }
     };
-	// 确保 fields 始终有效
+    // 确保 fields 始终有效
     let fields = fieldMap[source] || fieldMap.default;
-	
+
     // 安全获取字段值（使用空值合并和可选链）
     const songName = detail[fields.title] ?? '未知歌曲';
     const artist = detail[fields.artist] ?? '未知歌手';
     const rawLyric = detail[fields.lyric] ?? '';
-    const cover = detail[fields.cover] ? 
+    const cover = detail[fields.cover] ?
       new URL(detail[fields.cover], this.apiConfig[source].url).href : // 将相对路径转换为绝对路径
       'default-cover.jpg'; // 默认图片
     const musicUrl = detail[fields.url] ?? '';
-	
+
     // 防御性检查
     if (!songName || !artist) {
       Utils.showToast('详情数据不完整', 'warning');
       return;
     }
-	
+
     // 防御性检查
     if (!fields) {
       console.error('字段映射未定义，使用默认值');
       fields = fieldMap.default;
     }
-	
+
     if (fieldMap[source]) {
       fields = fieldMap[source];
     } else {
@@ -615,9 +615,14 @@ const MusicPlayer = {
       ? `${songName} - ${artist}` 
       : defaultTitle;
     document.title = finalTitle;
-	  
+
     // 渲染详情
     const detailContainer = document.getElementById('songDetail');
+    if (!detailContainer) {
+      console.error('详情容器未找到');
+      return;
+    }
+
     detailContainer.innerHTML = `
       <h2>${Utils.escapeHtml(songName)}</h2>
       <p>歌手：${Utils.escapeHtml(artist)}</p>
@@ -630,23 +635,41 @@ const MusicPlayer = {
          class="cover-img" 
          alt="${Utils.escapeHtml(songName)}专辑封面"> <!-- 加载失败时显示默认图片 -->
       ${musicUrl ? `
-        <audio controls>
-          <source src="${Utils.escapeHtml(musicUrl)}" type="audio/mpeg">
-          您的浏览器不支持音频播放
-        </audio>` : 
-        '<p class="error">暂无播放资源</p>'
+          <audio controls>
+            <source src="${Utils.escapeHtml(musicUrl)}" type="audio/mpeg">
+            您的浏览器不支持音频播放
+          </audio>
+          <div class="download-container">
+            <button class="download-btn">
+              <span class="download-icon"><i class="fas fa-download"></i></span>
+              <span class="download-text">下载</span>
+            </button>
+          </div>` :
+       '<p class="error">暂无播放资源</p>'
       }
       <div class="lyrics">
         ${rawLyric ? this.parseLyric(rawLyric).map(line => `
           <div data-time="${line.time}" class="lyric-time">${line.text}</div>
-        `).join('') : 
+        `).join('') :
         '<div class="no-lyric">暂无歌词</div>'
-        }
+      }
       </div>
     `;
 
+    // 绑定下载事件
+    const downloadBtn = detailContainer.querySelector('.download-btn');
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', () => {
+        this.downloadSong(musicUrl, songName, artist);
+      });
+    } else {
+      console.error('下载按钮未找到');
+    }
+
     const img = detailContainer.querySelector('img');
-    img.src = cover; // 设置图片 URL
+    if (img) {
+      img.src = cover;
+    }
 
     const audioElement = detailContainer.querySelector('audio');
     if (audioElement) {
@@ -655,13 +678,65 @@ const MusicPlayer = {
     }
   },
 
+  // 新增下载方法
+  downloadSong(url, songName, artist) {
+    // 清理文件名中的非法字符
+    const cleanName = (str) => str.replace(/[/\\?%*:|"<>]/g, '');
+    const safeSongName = cleanName(songName);
+    const safeArtist = cleanName(artist);
+  
+    // 改进版扩展名提取 --------------------------------------
+    // 1. 分离URL路径和查询参数
+    const [pathPart] = url.split(/[?#]/); // 丢弃所有参数和片段
+    // 2. 从路径中提取文件名
+    const fileName = pathPart.split('/').pop() || 'audio';
+    // 3. 安全提取扩展名（处理无扩展名情况）
+    const extensionMatch = fileName.match(/\.([a-z0-9]+)$/i);
+    const extension = extensionMatch ? extensionMatch[1] : 'unknown';
+  
+    // 创建最终文件名
+    const filename = `${safeSongName} - ${safeArtist}.${extension}`.replace(/\.+/g, '.');
+  
+    // 使用fetch和Blob实现下载（确保文件名控制）
+    fetch(url)
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.blob();
+      })
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        link.style.display = 'none';
+  
+        link.onerror = () => {
+          URL.revokeObjectURL(blobUrl);
+          Utils.showToast('下载失败，文件可能已失效', 'error');
+        };
+  
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(blobUrl);
+        }, 100);
+  
+        console.log(`成功下载: ${filename}`);
+      })
+      .catch(error => {
+        console.error('下载失败:', error);
+        Utils.showToast(`下载失败: ${error.message}`, 'error');
+      });
+  },
+
   // 音频处理
   setupAudioHandling(audioElement) {
     if (this.currentAudio) {
       this.currentAudio.pause();
     }
     this.currentAudio = audioElement;
-	this.setupLyricsSync(audioElement); // 新增调用
+    this.setupLyricsSync(audioElement); // 新增调用
 
     // 歌词点击跳转
     audioElement.parentElement.querySelector('.lyrics').addEventListener('click', (e) => {
@@ -692,7 +767,7 @@ const MusicPlayer = {
       Utils.showToast(message, 'error');
     });
   },
-  
+
   /**
    * 新增：移动端优化
    */
@@ -725,7 +800,7 @@ const MusicPlayer = {
       console.error('未处理的Promise错误:', e.reason);
     });
   },
-  
+
 };
 
 export default MusicPlayer;
