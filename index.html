@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="css/responsive.css">
   <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/download.css">
+  <link rel="stylesheet" href="css/playlist.css">
 </head>
 
 <body>
@@ -37,9 +38,23 @@
     <button>搜索</button>
   </div>
 
+  <!-- 添加播放模式控件 -->
+  <div class="playback-controls">
+    <button id="autoPlayButton">自动播放: 开</button>
+    <button id="loopButton">循环播放: 关</button>
+    <button id="shuffleButton">随机播放: 关</button>
+  </div>
+
   <div class="container">
     <div class="song-list" id="songList"></div>
     <div class="song-detail" id="songDetail"></div>
+    <div class="playlist" id="playlist">
+      <h3>播放列表</h3>
+      <ul id="playlistItems"></ul>
+    </div>
+    <div class="autoplay-prompt" id="autoplayPrompt">
+      <p>🔊 点击播放按钮以启用自动播放功能</p>
+    </div>
   </div>
 
   <div class="theme-preview">

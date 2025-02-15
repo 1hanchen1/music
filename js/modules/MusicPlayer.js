@@ -6,6 +6,12 @@ import CacheManager from './CacheManager.js';
  */
 const MusicPlayer = {
   currentAudio: null, // 当前播放器实例（单例控制）
+  playlist: [], // 播放列表
+  currentPlaylistIndex: -1, // 当前播放的歌曲索引
+  autoPlay: true, // 自动播放模式
+  loopPlaylist: false, // 循环播放模式
+  shufflePlaylist: false, // 随机播放模式
+  userInteracted: false, // 新增：用户是否已交互
 
   qualityMap: {
     '标准音质': 'standard',
@@ -62,6 +68,24 @@ const MusicPlayer = {
     this.setupGlobalErrorHandling();
     this.initLazyLoadImages();
     this.initAudioPreload();
+    this.showAutoplayPrompt(); // 新增：显示提示
+  },
+
+  /**
+   * 显示自动播放提示
+   */
+  showAutoplayPrompt() {
+    const prompt = document.getElementById('autoplayPrompt');
+    if (!this.userInteracted) {
+      prompt.classList.add('show');
+    }
+  },
+
+  /**
+   * 隐藏自动播放提示
+   */
+  hideAutoplayPrompt() {
+    document.getElementById('autoplayPrompt').classList.remove('show');
   },
 
   /**
@@ -107,6 +131,103 @@ const MusicPlayer = {
     audioElement.addEventListener('error', () => {
       Utils.showToast('音频加载失败，请稍后重试', 'error');
     });
+  },
+
+  /**
+   * 添加歌曲到播放列表
+   */
+  addToPlaylist(song) {
+    this.playlist.push(song);
+    this.renderPlaylist();
+  },
+
+  /**
+   * 从播放列表中移除歌曲
+   */
+  removeFromPlaylist(index) {
+    this.playlist.splice(index, 1);
+    this.renderPlaylist();
+  },
+
+  /**
+   * 从播放列表中播放歌曲
+   */
+  playFromPlaylist(index) {
+    if (index < 0 || index >= this.playlist.length) return;
+
+    const song = this.playlist[index];
+    this.currentPlaylistIndex = index;
+    this.showSongDetail(song.source, song.id, song.query);
+  },
+
+  /**
+   * 播放下一首歌曲
+   */
+  playNext() {
+    if (this.shufflePlaylist) {
+      // 随机播放模式
+      this.currentPlaylistIndex = this.getRandomIndex();
+    } else if (this.currentPlaylistIndex < this.playlist.length - 1) {
+      // 正常播放模式
+      this.currentPlaylistIndex++;
+    } else if (this.loopPlaylist) {
+      // 循环播放模式
+      this.currentPlaylistIndex = 0;
+    } else {
+      // 播放列表结束
+      Utils.showToast('播放列表已结束', 'info');
+      return;
+    }
+  
+    const nextSong = this.playlist[this.currentPlaylistIndex];
+    this.showSongDetail(nextSong.source, nextSong.id, nextSong.query);
+  },
+
+  /**
+   * 获取随机索引
+   */
+  getRandomIndex() {
+    let randomIndex;
+    do {
+      randomIndex = Math.floor(Math.random() * this.playlist.length);
+    } while (randomIndex === this.currentPlaylistIndex); // 避免重复播放同一首歌曲
+    return randomIndex;
+  },
+
+  /**
+   * 播放上一首歌曲
+   */
+  playPrevious() {
+    if (this.currentPlaylistIndex > 0) {
+      this.playFromPlaylist(this.currentPlaylistIndex - 1);
+    }
+  },
+
+  /**
+   * 切换自动播放模式
+   */
+  toggleAutoPlay() {
+    this.autoPlay = !this.autoPlay;
+    document.getElementById('autoPlayButton').textContent = `自动播放: ${this.autoPlay ? '开' : '关'}`;
+    Utils.showToast(`自动播放已${this.autoPlay ? '开启' : '关闭'}`, 'info');
+  },
+  
+  /**
+   * 切换循环播放模式
+   */
+  toggleLoopPlaylist() {
+    this.loopPlaylist = !this.loopPlaylist;
+    document.getElementById('loopButton').textContent = `循环播放: ${this.loopPlaylist ? '开' : '关'}`;
+    Utils.showToast(`循环播放已${this.loopPlaylist ? '开启' : '关闭'}`, 'info');
+  },
+  
+  /**
+   * 切换随机播放模式
+   */
+  toggleShufflePlaylist() {
+    this.shufflePlaylist = !this.shufflePlaylist;
+    document.getElementById('shuffleButton').textContent = `随机播放: ${this.shufflePlaylist ? '开' : '关'}`;
+    Utils.showToast(`随机播放已${this.shufflePlaylist ? '开启' : '关闭'}`, 'info');
   },
 
   /**
@@ -187,6 +308,7 @@ const MusicPlayer = {
         const source = item.dataset.source; // 获取来源
         const id = parseInt(item.dataset.id, 10); // 确保 id 是数字
         const query = item.dataset.query; // 获取搜索关键词
+        this.showSongDetail(source, id, query); // 传递source、id和query
 
         // 添加调试日志
         console.log('点击的歌曲项:', { source, id, query });
@@ -195,8 +317,6 @@ const MusicPlayer = {
           Utils.showToast('无效的歌曲 ID', 'error');
           return;
         }
-
-        this.showSongDetail(source, id, query); // 传递source、id和query
       }
     });
 
@@ -214,6 +334,11 @@ const MusicPlayer = {
         if (e.target.value.trim()) this.searchSongs();
       }, 500);
     });
+
+    // 绑定播放模式按钮事件
+    document.getElementById('autoPlayButton').addEventListener('click', () => this.toggleAutoPlay());
+    document.getElementById('loopButton').addEventListener('click', () => this.toggleLoopPlaylist());
+    document.getElementById('shuffleButton').addEventListener('click', () => this.toggleShufflePlaylist());
   },
 
   /**
@@ -513,6 +638,25 @@ const MusicPlayer = {
       // 渲染详情
       this.renderSongDetail(detailData, source);
 
+      // 如果用户已交互且自动播放开启，则自动播放
+      const audioElement = document.querySelector('#songDetail audio');
+      if (audioElement && this.autoPlay && this.userInteracted) {
+        audioElement.play().catch(error => {
+          console.error("自动播放失败:", error);
+        });
+      }
+
+      // 添加歌曲到播放列表
+      const song = {
+        source,
+        id,
+        query,
+        title: detailData.song_name || detailData.title,
+        artist: detailData.song_singer || detailData.singer,
+        quality: detailData.quality || '标准音质'
+      };
+      this.addToPlaylist(song);
+
     } catch (error) {
       let errorMessage = `获取详情失败: ${error.message}`;
       if (error.status === 404) errorMessage = '未找到歌曲详情，请尝试其他歌曲';
@@ -535,6 +679,39 @@ const MusicPlayer = {
       if (e.reason instanceof Error) errorMessage = e.reason.message;
       Utils.showToast(errorMessage, 'error');
       console.error('未处理的Promise错误:', e.reason);
+    });
+  },
+
+  /**
+   * 渲染播放列表
+   */
+  renderPlaylist() {
+    const playlistItems = document.getElementById('playlistItems');
+    playlistItems.innerHTML = '';
+
+    this.playlist.forEach((song, index) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span>${Utils.escapeHtml(song.title)} - ${Utils.escapeHtml(song.artist)}</span>
+        <button class="play-btn" data-index="${index}">播放</button>
+        <button class="remove-btn" data-index="${index}">移除</button>
+      `;
+      playlistItems.appendChild(li);
+    });
+
+    // 绑定播放和移除按钮事件
+    playlistItems.querySelectorAll('.play-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const index = e.target.dataset.index;
+        this.playFromPlaylist(index);
+      });
+    });
+
+    playlistItems.querySelectorAll('.remove-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const index = e.target.dataset.index;
+        this.removeFromPlaylist(index);
+      });
     });
   },
 
@@ -818,6 +995,21 @@ const MusicPlayer = {
           break;
       }
       Utils.showToast(message, 'error');
+    });
+
+    // 监听播放事件以标记用户交互
+    audioElement.addEventListener('play', () => {
+      if (!this.userInteracted) {
+        this.userInteracted = true;
+        console.log("用户已交互，允许自动播放");
+      }
+    });
+
+    // 监听歌曲结束事件，自动播放下一首
+    audioElement.addEventListener('ended', () => {
+      if (this.autoPlay && this.userInteracted) {
+        this.playNext();
+      }
     });
   },
 
