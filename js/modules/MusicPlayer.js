@@ -137,8 +137,20 @@ const MusicPlayer = {
    * 添加歌曲到播放列表
    */
   addToPlaylist(song) {
-    this.playlist.push(song);
-    this.renderPlaylist();
+    // 检查是否已存在
+    const isDuplicate = this.playlist.some(item => 
+      item.id === song.id && 
+      item.source === song.source && 
+      item.title === song.title
+    );
+  
+    if (!isDuplicate) {
+      this.playlist.push(song);
+      this.renderPlaylist();
+      Utils.showToast('添加成功', 'success');
+    } else {
+      Utils.showToast('歌曲已在播放列表中', 'warning');
+    }
   },
 
   /**
@@ -419,7 +431,7 @@ const MusicPlayer = {
 
       // 合并结果并去重
       const mergedData = this.mergeResults([...api1Data, ...api2Data, ...api3Data]);
-
+      
       if (mergedData.length > 0) {
         CacheManager.set(query, mergedData);
       }
@@ -635,14 +647,18 @@ const MusicPlayer = {
         throw new Error('缺少歌曲名称字段');
       }
 
-      // 渲染详情
-      this.renderSongDetail(detailData, source);
+      // 渲染详情（不再自动添加歌曲到播放列表）
+      this.renderSongDetail(detailData, source, id, query); // 确保传递 id 和 query
 
-      // 如果用户已交互且自动播放开启，则自动播放
+      // 自动播放逻辑保留（如果用户需要）
       const audioElement = document.querySelector('#songDetail audio');
       if (audioElement && this.autoPlay && this.userInteracted) {
         audioElement.play().catch(error => {
-          console.error("自动播放失败:", error);
+          // 忽略 AbortError
+          if (error.name !== 'AbortError') {
+            console.error('播放失败:', error);
+            Utils.showToast('播放失败，请重试', 'error');
+          }
         });
       }
 
@@ -691,11 +707,14 @@ const MusicPlayer = {
 
     this.playlist.forEach((song, index) => {
       const li = document.createElement('li');
+      li.className = 'playlist-item';
       li.innerHTML = `
-        <span>${Utils.escapeHtml(song.title)} - ${Utils.escapeHtml(song.artist)}</span>
-        <button class="play-btn" data-index="${index}">播放</button>
-        <button class="remove-btn" data-index="${index}">移除</button>
-      `;
+      <span class="song-info">${Utils.escapeHtml(song.title)} - ${Utils.escapeHtml(song.artist)}</span>
+      <div class="controls">
+        <button class="play-btn" data-index="${index}">▶️ 播放</button>
+        <button class="remove-btn" data-index="${index}">❌ 移除</button>
+      </div>
+    `;
       playlistItems.appendChild(li);
     });
 
@@ -718,7 +737,7 @@ const MusicPlayer = {
   /**
    * 渲染歌曲详情（适配多API来源）
    */
-  renderSongDetail(detail, source) {
+  renderSongDetail(detail, source, id, query) {
     // 检查 detail 是否存在
     if (!detail || typeof detail !== 'object') {
       Utils.showToast('歌曲详情数据异常', 'error');
@@ -811,8 +830,8 @@ const MusicPlayer = {
         </span>
       </p>
       <img src="${Utils.escapeHtml(cover)}" 
-         class="cover-img" 
-         alt="${Utils.escapeHtml(songName)}专辑封面"> <!-- 加载失败时显示默认图片 -->
+        class="cover-img" 
+        alt="${Utils.escapeHtml(songName)}专辑封面">
       ${musicUrl ? `
           <audio controls>
             <source src="${Utils.escapeHtml(musicUrl)}" type="audio/mpeg">
@@ -826,6 +845,7 @@ const MusicPlayer = {
           </div>` :
        '<p class="error">暂无播放资源</p>'
       }
+      <button id="addToPlaylistButton">添加到播放列表</button>
       <div class="lyrics">
         ${rawLyric ? this.parseLyric(rawLyric).map(line => `
           <div data-time="${line.time}" class="lyric-time">${line.text}</div>
@@ -852,10 +872,28 @@ const MusicPlayer = {
       img.src = cover;
     }
 
+    // 绑定音频事件
     const audioElement = detailContainer.querySelector('audio');
     if (audioElement) {
       this.setupAudioHandling(audioElement);
       this.setupLyricsSync(audioElement); // 初始化歌词同步
+    }
+
+    // 绑定手动添加按钮事件
+    const addButton = document.getElementById('addToPlaylistButton');
+    if (addButton) {
+      addButton.addEventListener('click', () => {
+        const song = {
+          source,
+          id,
+          query,
+          title: songName,
+          artist: artist,
+          quality: detail.quality || '标准音质'
+        };
+        this.addToPlaylist(song); // 调用手动添加方法
+        Utils.showToast('已添加到播放列表', 'success');
+      });
     }
   },
 
@@ -964,6 +1002,8 @@ const MusicPlayer = {
   setupAudioHandling(audioElement) {
     if (this.currentAudio) {
       this.currentAudio.pause();
+      this.currentAudio.removeAttribute('src'); // 清除旧音频源
+      this.currentAudio.load();
     }
     this.currentAudio = audioElement;
     this.setupLyricsSync(audioElement); // 新增调用
@@ -972,8 +1012,13 @@ const MusicPlayer = {
     audioElement.parentElement.querySelector('.lyrics').addEventListener('click', (e) => {
       const target = e.target.closest('.lyric-time');
       if (target) {
+        audioElement.pause();
         audioElement.currentTime = parseFloat(target.dataset.time);
-        audioElement.play();
+        audioElement.play().catch(error => {
+          if (error.name !== 'AbortError') {
+            Utils.showToast('跳转失败', 'error');
+          }
+        });
       }
     });
 
@@ -1001,6 +1046,7 @@ const MusicPlayer = {
     audioElement.addEventListener('play', () => {
       if (!this.userInteracted) {
         this.userInteracted = true;
+        this.hideAutoplayPrompt();
         console.log("用户已交互，允许自动播放");
       }
     });
@@ -1036,11 +1082,13 @@ const MusicPlayer = {
    */
   setupGlobalErrorHandling() {
     window.addEventListener('error', (e) => {
+      if (e.error.name === 'AbortError') return; // 忽略 AbortError
       Utils.showToast('发生意外错误', 'error');
       console.error('全局错误:', e.error);
     });
 
     window.addEventListener('unhandledrejection', (e) => {
+      if (e.reason.name === 'AbortError') return; // 忽略 AbortError
       Utils.showToast('异步操作失败', 'error');
       console.error('未处理的Promise错误:', e.reason);
     });

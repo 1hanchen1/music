@@ -29,14 +29,8 @@
   font-size: 14px;
 }
 
-#playlistItems .play-btn {
-  background-color: #4CAF50;
-  color: white;
-}
-
 #playlistItems .remove-btn {
   background-color: #f44336;
-  color: white;
 }
 
 .playback-controls {
@@ -72,4 +66,45 @@
 
 .autoplay-prompt.show {
   display: block;
+}
+
+#addToPlaylistButton {
+  padding: 10px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 10px 0;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* 播放列表项 */
+.playlist-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.playlist-item .song-info {
+  flex: 1;
+  margin-right: 15px;
+}
+
+.playlist-item .controls button {
+  padding: 5px 10px;
+  margin-left: 5px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.playlist-item .play-btn {
+  background: #2196F3;
+  color: white;
+}
+
+.playlist-item .remove-btn {
+  background: #f44336;
+  color: white;
 }
