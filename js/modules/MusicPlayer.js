@@ -5,60 +5,60 @@ import CacheManager from './CacheManager.js';
  * 音乐播放器核心模块（事件驱动架构）
  */
 const MusicPlayer = {
-  currentAudio: null, // 当前播放器实例（单例控制）
-  playlist: [], // 播放列表
-  currentPlaylistIndex: -1, // 当前播放的歌曲索引
-  autoPlay: true, // 自动播放模式
-  loopPlaylist: false, // 循环播放模式
-  shufflePlaylist: false, // 随机播放模式
-  userInteracted: false, // 新增：用户是否已交互
+  currentAudio: null， // 当前播放器实例（单例控制）
+  playlist: []， // 播放列表
+  currentPlaylistIndex: -1， // 当前播放的歌曲索引
+  autoPlay: true， // 自动播放模式
+  loopPlaylist: false， // 循环播放模式
+  shufflePlaylist: false， // 随机播放模式
+  userInteracted: false， // 新增：用户是否已交互
 
   qualityMap: {
-    '标准音质': 'standard',
-    '高品音质': 'hq',
-    '无损音质': 'sq',
-    'Hi-Res': 'hi-res',
-    '高清环绕声': 'hi-res',
-    '沉浸环绕声': 'hi-res',
+    '标准音质': 'standard'，
+    '高品音质': 'hq'，
+    '无损音质': 'sq'，
+    'Hi-Res': 'hi-res'，
+    '高清环绕声': 'hi-res'，
+    '沉浸环绕声': 'hi-res'，
     '超清母带': 'hi-res'
-  },
+  }，
 
   getQualityClass(quality) {
     const normalizedQuality = quality?.toLowerCase() || 'standard';
-    return this.qualityMap[normalizedQuality] || 'standard';
-  },
+    return this。qualityMap[normalizedQuality] || 'standard';
+  }，
 
   // API 配置
   apiConfig: {
     'QQ音乐': {
-      url: 'https://www.hhlqilongzhu.cn/api/dg_shenmiMusic_SQ.php',
-      params: { msg: '', type: 'json', n: '', num: 20, br: 1 }
-    },
+      url: 'https://api.dragonlongzhu.cn/api/dg_shenmiMusic_SQ.php'，
+      params: { msg: ''， type: 'json'， n: ''， num: 20， br: 1 }
+    }，
     '网易云': {
-      url: 'https://www.hhlqilongzhu.cn/api/dg_wyymusic.php',
-      params: { gm: '', type: 'json', n: '', num: 20, br: 1 }
-    },
+      url: 'https://www.hhlqilongzhu.cn/api/dg_wyymusic.php'，
+      params: { gm: ''， type: 'json'， n: ''， num: 20， br: 1 }
+    }，
     '酷狗音乐': {
-      url: 'https://www.hhlqilongzhu.cn/api/dg_kgmusic.php', 
-      params: { gm: '', type: 'json', n: '', num: 20, br: 1 }
+      url: 'https://www.hhlqilongzhu.cn/api/dg_kgmusic.php'， 
+      params: { gm: ''， type: 'json'， n: ''， num: 20， br: 1 }
     }
-  },
+  }，
 
   // 构建请求 URL
-  buildApiUrl(source, query, id = '') {
-    const config = this.apiConfig[source];
-    if (!config) throw new Error(`未知的 API 来源: ${source}`);
+  buildApiUrl(source， query， id = '') {
+    const config = this。apiConfig[source];
+    if (!config) throw new 错误(`未知的 API 来源: ${source}`);
 
-    const params = { ...config.params };
+    const params = { ...config。params };
     params[source === 'QQ音乐' ? 'msg' : source === '网易云' ? 'gm' : source === '酷狗音乐' ? 'gm' : 'query'] = encodeURIComponent(query);
     if (id) params[source === 'QQ音乐' ? 'n' : source === '网易云' ? 'n' : source === '酷狗音乐' ? 'n' : 'id'] = id;
 
-    const queryString = Object.entries(params)
-      .map(([key, value]) => `${key}=${value}`)
-      .join('&');
+    const queryString = Object。entries(params)
+      。map(([key， value]) => `${key}=${value}`)
+      。join('&');
 
-    return `${config.url}?${queryString}`;
-  },
+    return `${config。url}?${queryString}`;
+  }，
 
   /**
    * 初始化播放器（事件绑定 + 错误监控）
