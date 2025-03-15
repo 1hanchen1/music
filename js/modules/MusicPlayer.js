@@ -31,15 +31,15 @@ const MusicPlayer = {
   // API 配置
   apiConfig: {
     'QQ音乐': {
-      url: 'https://www.hhlqilongzhu.cn/api/dg_shenmiMusic_SQ.php',
+      url: 'https://api.dragonlongzhu.cn/api/dg_shenmiMusic_SQ.php',
       params: { msg: '', type: 'json', n: '', num: 20, br: 1 }
     },
     '网易云': {
-      url: 'https://www.hhlqilongzhu.cn/api/dg_wyymusic.php',
+      url: 'https://api.dragonlongzhu.cn/api/dg_wyymusic.php',
       params: { gm: '', type: 'json', n: '', num: 20, br: 1 }
     },
     '酷狗音乐': {
-      url: 'https://www.hhlqilongzhu.cn/api/dg_kgmusic.php', 
+      url: 'https://api.dragonlongzhu.cn/api/dg_kgmusic.php', 
       params: { gm: '', type: 'json', n: '', num: 20, br: 1 }
     }
   },
