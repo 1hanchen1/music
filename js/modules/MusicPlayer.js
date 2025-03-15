@@ -35,14 +35,14 @@ const MusicPlayer = {
       params: { msg: ''， type: 'json'， n: ''， num: 20， br: 1 }
     }，
     '网易云': {
-      url: 'https://www.hhlqilongzhu.cn/api/dg_wyymusic.php'，
+      url: 'https://api.dragonlongzhu.cn/api/dg_wyymusic.php'，
       params: { gm: ''， type: 'json'， n: ''， num: 20， br: 1 }
     }，
     '酷狗音乐': {
-      url: 'https://www.hhlqilongzhu.cn/api/dg_kgmusic.php'， 
+      url: 'https://api.dragonlongzhu.cn/api/dg_kgmusic.php'， 
       params: { gm: ''， type: 'json'， n: ''， num: 20， br: 1 }
     }
-  }，
+    }，
 
   // 构建请求 URL
   buildApiUrl(source， query， id = '') {
@@ -64,29 +64,29 @@ const MusicPlayer = {
    * 初始化播放器（事件绑定 + 错误监控）
    */
   init() {
-    this.bindEvents();
-    this.setupGlobalErrorHandling();
-    this.initLazyLoadImages();
-    this.initAudioPreload();
-    this.showAutoplayPrompt(); // 新增：显示提示
-  },
+    this。bindEvents();
+    this。setupGlobalErrorHandling();
+    this。initLazyLoadImages();
+    this。initAudioPreload();
+    this。showAutoplayPrompt(); // 新增：显示提示
+  }，
 
   /**
    * 显示自动播放提示
    */
   showAutoplayPrompt() {
-    const prompt = document.getElementById('autoplayPrompt');
-    if (!this.userInteracted) {
-      prompt.classList.add('show');
+    const prompt = document。getElementById('autoplayPrompt');
+    if (!this。userInteracted) {
+      prompt。classList。add('show');
     }
-  },
+  }，
 
   /**
    * 隐藏自动播放提示
    */
   hideAutoplayPrompt() {
-    document.getElementById('autoplayPrompt').classList.remove('show');
-  },
+    document。getElementById('autoplayPrompt')。classList。remove('show');
+  }，
 
   /**
    * 初始化图片懒加载。
