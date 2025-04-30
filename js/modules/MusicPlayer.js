@@ -31,7 +31,7 @@ const MusicPlayer = {
   // API 配置
   apiConfig: {
     'QQ音乐': {
-      url: 'https://api.dragonlongzhu.cn/api/dg_shenmiMusic_SQ.php',
+      url: 'https://api.dragonlongzhu.cn/api/dg_QQmusicflac.php',
       params: { msg: '', type: 'json', n: '', num: 20, br: 1 }
     },
     '网易云': {
