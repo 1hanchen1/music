@@ -35,8 +35,8 @@ const MusicPlayer = {
       params: { msg: '', type: 'json', n: '', num: 20, br: 1 }
     },
     '网易云': {
-      url: 'https://api.dragonlongzhu.cn/api/dg_wyymusic.php',
-      params: { gm: '', type: 'json', n: '', num: 20, br: 1 }
+      url: 'https://sdkapi.hhlqilongzhu.cn/api/dgMusic_wyy/',
+      params: { gm: '', type: 'json', n: '', key: 'Dragon2BCF172715746E0F97B24D8D9D393CC3' , num: 20, br: 1 }
     },
     '酷狗音乐': {
       url: 'https://api.dragonlongzhu.cn/api/dg_kgmusic.php', 
